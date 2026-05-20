@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polla Roland Garros 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card-selected { @apply ring-4 ring-yellow-400 bg-yellow-50; }
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- HEADER -->
+  <header class="bg-green-800 text-white py-4 px-4 shadow-lg">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">🎾 Polla Roland Garros 2026</h1>
+        <p class="text-green-200 text-sm">Bracket Challenge — ATP & WTA</p>
+      </div>
+      <div id="user-badge" class="hidden bg-green-700 rounded-full px-4 py-1 text-sm font-medium"></div>
+    </div>
+  </header>
+
+  <!-- MODAL REGISTRO -->
+  <div id="modal-registro" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+      <h2 class="text-xl font-bold text-green-800 mb-1">¡Bienvenido!</h2>
+      <p class="text-gray-500 text-sm mb-6">Ingresa tus datos para comenzar a pronosticar.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input id="reg-email" type="email" placeholder="tu@email.com"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input id="reg-username" type="text" placeholder="Ej: Rafa_Fan"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" />
+        </div>
+        <button onclick="handleRegistro()"
+          class="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-2 rounded-lg transition">
+          Entrar a la Polla
+        </button>
+        <p id="reg-error" class="text-red-500 text-xs text-center hidden">Por favor completa todos los campos.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <main id="app" class="hidden max-w-5xl mx-auto px-4 py-6">
+
+    <!-- SWITCH ATP / WTA -->
+    <div class="flex justify-center mb-6">
+      <div class="inline-flex bg-white rounded-full shadow p-1">
+        <button id="btn-atp" onclick="switchCuadro('ATP')"
+          class="px-6 py-2 rounded-full text-sm font-bold transition bg-green-700 text-white">
+          ATP
+        </button>
+        <button id="btn-wta" onclick="switchCuadro('WTA')"
+          class="px-6 py-2 rounded-full text-sm font-bold transition text-gray-500">
+          WTA
+        </button>
+      </div>
+    </div>
+
+    <!-- TABS DE RONDAS -->
+    <div class="flex overflow-x-auto gap-2 mb-6 pb-1">
+      <button class="tab-btn" data-ronda="R128" onclick="switchRonda('R128')">R128</button>
+      <button class="tab-btn" data-ronda="R64" onclick="switchRonda('R64')">R64</button>
+      <button class="tab-btn" data-ronda="R32" onclick="switchRonda('R32')">R32</button>
+      <button class="tab-btn" data-ronda="R16" onclick="switchRonda('R16')">Octavos</button>
+      <button class="tab-btn" data-ronda="QF" onclick="switchRonda('QF')">Cuartos</button>
+      <button class="tab-btn" data-ronda="SF" onclick="switchRonda('SF')">Semis</button>
+      <button class="tab-btn" data-ronda="F" onclick="switchRonda('F')">Final</button>
+    </div>
+
+    <!-- GRID DE PARTIDOS -->
+    <div id="partidos-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Cards inyectadas por JS -->
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-green-700 border-t-transparent"></div>
+    </div>
+
+    <!-- RANKING -->
+    <section class="mt-10">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-green-800">🏆 Ranking General</h2>
+        <button onclick="loadRanking()"
+          class="text-sm bg-green-100 hover:bg-green-200 text-green-800 font-medium px-3 py-1 rounded-full transition">
+          Actualizar
+        </button>
+      </div>
+      <div class="bg-white rounded-2xl shadow overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-green-700 text-white">
+            <tr>
+              <th class="py-3 px-4 text-left">#</th>
+              <th class="py-3 px-4 text-left">Usuario</th>
+              <th class="py-3 px-4 text-right">Puntos</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-body">
+            <tr><td colspan="3" class="text-center text-gray-400 py-6">Cargando ranking...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm px-5 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+  </div>
+
+<script>
+  // ── Estado global ──────────────────────────────────────────
+  var state = {
+    email: '',
+    username: '',
+    cuadro: 'ATP',
+    ronda: 'R128',
+    partidos: {},   // { 'ATP': [...], 'WTA': [...] }
+    pronosticos: {} // { 'cuadro_partidoId': jugadorElegido }
+  };
+
+  var PUNTOS = { R128:1, R64:2, R32:3, R16:5, QF:8, SF:13, F:21 };
+
+  // ── Estilos dinámicos de tabs ──────────────────────────────
+  function styleTabBtns() {
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      var active = btn.dataset.ronda === state.ronda;
+      btn.className = 'tab-btn whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition ' +
+        (active ? 'bg-green-700 text-white shadow' : 'bg-white text-gray-600 hover:bg-green-100');
+    });
+  }
+
+  // ── Registro ──────────────────────────────────────────────
+  function handleRegistro() {
+    var email = document.getElementById('reg-email').value.trim();
+    var username = document.getElementById('reg-username').value.trim();
+    if (!email || !username) {
+      document.getElementById('reg-error').classList.remove('hidden');
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var r = JSON.parse(res);
+        if (r.success) {
+          state.email = email;
+          state.username = r.username || username;
+          document.getElementById('modal-registro').style.display = 'none';
+          document.getElementById('app').classList.remove('hidden');
+          document.getElementById('user-badge').textContent = '👤 ' + state.username;
+          document.getElementById('user-badge').classList.remove('hidden');
+          loadPronosticosUsuario();
+          loadPartidos();
+          loadRanking();
+        }
+      })
+      .withFailureHandler(function(err) { showToast('Error al registrar: ' + err.message); })
+      .registrarUsuario(email, username);
+  }
+
+  // ── Cargar partidos ────────────────────────────────────────
+  function loadPartidos() {
+    document.getElementById('loader').classList.remove('hidden');
+    document.getElementById('partidos-container').innerHTML = '';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var r = JSON.parse(res);
+        document.getElementById('loader').classList.add('hidden');
+        if (!r.success) { showToast('Error cargando partidos: ' + r.error); return; }
+        state.partidos[state.cuadro] = r.data;
+        renderPartidos();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('loader').classList.add('hidden');
+        showToast('Error: ' + err.message);
+      })
+      .getPartidos(state.cuadro);
+  }
+
+  // ── Render de tarjetas ─────────────────────────────────────
+  function renderPartidos() {
+    var container = document.getElementById('partidos-container');
+    container.innerHTML = '';
+    var partidos = (state.partidos[state.cuadro] || []).filter(function(p) {
+      return p['Ronda'] === state.ronda;
+    });
+
+    if (partidos.length === 0) {
+      container.innerHTML = '<p class="col-span-full text-center text-gray-400 py-10">No hay partidos disponibles para esta ronda.</p>';
+      return;
+    }
+
+    partidos.forEach(function(partido) {
+      var key = state.cuadro + '_' + partido['Partido_ID'];
+      var elegido = state.pronosticos[key] || null;
+      var ganadorReal = partido['Ganador_Real'] || null;
+      var pts = PUNTOS[state.ronda] || 0;
+
+      var card = document.createElement('div');
+      card.className = 'bg-white rounded-2xl shadow p-4 flex flex-col gap-3';
+
+      var header = '<div class="flex justify-between items-center mb-1">' +
+        '<span class="text-xs font-bold text-green-700 uppercase tracking-wide">' + partido['Ronda'] + '</span>' +
+        '<span class="text-xs bg-green-100 text-green-800 rounded-full px-2 py-0.5 font-semibold">+' + pts + ' pts</span>' +
+        '</div>';
+
+      function btnClass(jugador) {
+        var base = 'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-semibold transition cursor-pointer ';
+        if (ganadorReal) {
+          if (jugador === ganadorReal) return base + 'border-green-500 bg-green-50 text-green-800';
+          return base + 'border-gray-200 bg-gray-50 text-gray-400 line-through';
+        }
+        if (elegido === jugador) return base + 'border-yellow-400 bg-yellow-50 text-yellow-800 ring-2 ring-yellow-300';
+        return base + 'border-gray-200 hover:border-green-400 hover:bg-green-50 text-gray-700';
+      }
+
+      var j1 = partido['Jugador1'] || '??';
+      var j2 = partido['Jugador2'] || '??';
+      var seed1 = partido['Seed1'] ? '(' + partido['Seed1'] + ')' : '';
+      var seed2 = partido['Seed2'] ? '(' + partido['Seed2'] + ')' : '';
+
+      card.innerHTML = header +
+        '<button class="' + btnClass(j1) + '" onclick="seleccionarGanador(\'' + partido['Partido_ID'] + '\', \'' + escStr(j1) + '\', \'' + partido['Ronda'] + '\')">'
+          + seed1 + ' ' + j1 + '</button>' +
+        '<div class="text-center text-xs text-gray-400 font-bold">VS</div>' +
+        '<button class="' + btnClass(j2) + '" onclick="seleccionarGanador(\'' + partido['Partido_ID'] + '\', \'' + escStr(j2) + '\', \'' + partido['Ronda'] + '\')">'
+          + seed2 + ' ' + j2 + '</button>';
+
+      container.appendChild(card);
+    });
+  }
+
+  function escStr(s) { return (s || '').replace(/'/g, "\\'"); }
+
+  // ── Seleccionar ganador ────────────────────────────────────
+  function seleccionarGanador(partidoId, jugador, ronda) {
+    var key = state.cuadro + '_' + partidoId;
+    state.pronosticos[key] = jugador;
+    renderPartidos(); // feedback inmediato
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var r = JSON.parse(res);
+        showToast(r.action === 'updated' ? '✏️ Pronóstico actualizado' : '✅ Pronóstico guardado');
+      })
+      .withFailureHandler(function(err) { showToast('Error guardando: ' + err.message); })
+      .guardarPronostico(state.email, state.username, state.cuadro, partidoId, ronda, jugador);
+  }
+
+  // ── Cargar pronósticos previos ─────────────────────────────
+  function loadPronosticosUsuario() {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var r = JSON.parse(res);
+        if (!r.success) return;
+        r.data.forEach(function(p) {
+          var key = p['Cuadro'] + '_' + p['Partido_ID'];
+          state.pronosticos[key] = p['Jugador_Elegido'];
+        });
+      })
+      .getPronosticosUsuario(state.email);
+  }
+
+  // ── Ranking ────────────────────────────────────────────────
+  function loadRanking() {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var r = JSON.parse(res);
+        var tbody = document.getElementById('ranking-body');
+        if (!r.success || r.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-400 py-6">Sin datos aún.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = r.data.map(function(u, i) {
+          var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+          var rowClass = u['Email'] === state.email ? 'bg-yellow-50 font-bold' : (i % 2 === 0 ? 'bg-white' : 'bg-gray-50');
+          return '<tr class="' + rowClass + '">' +
+            '<td class="py-3 px-4">' + medal + '</td>' +
+            '<td class="py-3 px-4">' + (u['Username'] || '—') + '</td>' +
+            '<td class="py-3 px-4 text-right text-green-700 font-bold">' + (u['Puntos'] || 0) + '</td>' +
+            '</tr>';
+        }).join('');
+      })
+      .getRanking();
+  }
+
+  // ── Cambio de cuadro / ronda ───────────────────────────────
+  function switchCuadro(cuadro) {
+    state.cuadro = cuadro;
+    document.getElementById('btn-atp').className = 'px-6 py-2 rounded-full text-sm font-bold transition ' +
+      (cuadro === 'ATP' ? 'bg-green-700 text-white' : 'text-gray-500');
+    document.getElementById('btn-wta').className = 'px-6 py-2 rounded-full text-sm font-bold transition ' +
+      (cuadro === 'WTA' ? 'bg-green-700 text-white' : 'text-gray-500');
+    if (state.partidos[cuadro]) { renderPartidos(); } else { loadPartidos(); }
+  }
+
+  function switchRonda(ronda) {
+    state.ronda = ronda;
+    styleTabBtns();
+    renderPartidos();
+  }
+
+  // ── Toast ──────────────────────────────────────────────────
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(function() { t.style.opacity = '0'; }, 2800);
+  }
+
+  // ── Init tabs ──────────────────────────────────────────────
+  styleTabBtns();
+</script>
+</body>
+</html>
