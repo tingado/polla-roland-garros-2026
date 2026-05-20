@@ -51,3 +51,10 @@ Desarrollado con **Google Apps Script** (backend) + **Google Sheets** (base de d
 ## Función `recalcularPuntajes()`
 
 Ejecútala manualmente desde el editor GAS (o crea un trigger diario) cada vez que se registren resultados reales en la columna `Ganador_Real` de las pestañas de partidos.
+
+
+## Enlaces
+
+- [Sitio oficial Roland Garros](https://www.rolandgarros.com/)
+- [ATP Tour](https://www.atptour.com/)
+- [WTA Tour](https://www.wtatennis.com/)
