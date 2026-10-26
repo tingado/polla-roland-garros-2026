@@ -1,5 +1,12 @@
 # 🎾 Polla Roland Garros 2026
 
+## Empieza aquí
+
+- [Mapa visual, arquitectura y recorrido de los datos](docs/MAPA.md).
+- [Revisión documental y pendientes](docs/REVISION.md).
+
+> Revisión documental: 26 de octubre de 2026. La presencia de código no acredita despliegue ni pruebas aprobadas. Esta revisión no cambia lógica, datos ni configuración operativa.
+
 Bracket Challenge para Roland Garros 2026 — ATP & WTA (128 jugadores cada cuadro).
 
 Desarrollado con **Google Apps Script** (backend) + **Google Sheets** (base de datos) + **Tailwind CSS** (UI).
@@ -38,6 +45,10 @@ Desarrollado con **Google Apps Script** (backend) + **Google Sheets** (base de d
 | QF (Cuartos) | 8 |
 | SF (Semis) | 13 |
 | F (Final) | 21 |
+
+## Seguridad antes del despliegue
+
+El registro por email y nombre **no es una autenticación verificada**. En el backend revisado no se observa una comprobación de identidad ni un cierre temporal en `guardarPronostico()`. Antes de usar participantes reales, revisar permisos del despliegue, cierre de pronósticos, privacidad del ranking y autorización de operaciones. No publicar la Web App indiscriminadamente solo por seguir la receta histórica de abajo.
 
 ## Cómo desplegar
 
